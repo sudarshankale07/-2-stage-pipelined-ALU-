@@ -6,26 +6,26 @@ module alu_pipelined #(
     
 )(
     input clk,
-    input rst_n,      // active-low asynchronous reset
-    input flush,      // synchronous pipeline flush
+    input rst_n,      
+    input flush,     
 
-    // Input interface
-    input  logic                  valid_in,
+    
+    input  logic valid_in,
     input  logic [DATA_WIDTH-1:0] a,
     input  logic [DATA_WIDTH-1:0] b,
     input  alu_op_t               op,
 
-    // Output interface
-    output logic                  valid_out,
+   
+    output logic  valid_out,
     output logic [DATA_WIDTH-1:0] y
 );
 
   
     // Stage 1: Input register stage
    
-    logic                    s1_valid;
+    logic s1_valid;
     logic [DATA_WIDTH-1:0]   s1_a, s1_b;
-    alu_op_t                 s1_op;
+    alu_op_t  s1_op;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -48,12 +48,12 @@ module alu_pipelined #(
    
     // Stage 2: Execute and output stage
    
-    logic                    s2_valid;
+    logic s2_valid;
     logic [DATA_WIDTH-1:0]   s2_y;
 
-    // Combinational ALU logic
+  
     always_comb begin
-        automatic logic [4:0] shamt = s1_b[4:0]; // safe shift amount (0-31)
+        automatic logic [4:0] shamt = s1_b[4:0]; 
         unique case (s1_op)
             ALU_ADD: s2_y = s1_a + s1_b;
             ALU_SUB: s2_y = s1_a - s1_b;
