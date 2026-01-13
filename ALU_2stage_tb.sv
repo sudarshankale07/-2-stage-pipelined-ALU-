@@ -1,4 +1,4 @@
-// tb_alu_pipelined_simple.sv
+
 `timescale 1ns/1ps
 
 import alu_defines::*;
@@ -12,7 +12,7 @@ module tb_alu_pipelined;
     logic [DATA_WIDTH-1:0] a, b, y;
     alu_op_t op;
 
-    // Transaction queue with simplified struct (no cycle tracking)
+    
     typedef struct {
         logic [DATA_WIDTH-1:0] a;
         logic [DATA_WIDTH-1:0] b;
@@ -73,25 +73,25 @@ module tb_alu_pipelined;
         end
     end
 
-    // Send transaction task - FIXED VERSION
+
     task send_txn(
         input logic [DATA_WIDTH-1:0] a_val,
         input logic [DATA_WIDTH-1:0] b_val,
         input alu_op_t op_val,
         input bit do_flush = 0
     );
-        // Set up inputs BEFORE the clock edge
-        @(negedge clk);  // Use negedge to avoid race conditions
+        
+        @(negedge clk);  
         valid_in = 1'b1;
         a = a_val;
         b = b_val;
         op = op_val;
         flush = do_flush;
         
-        // Wait for the posedge when DUT samples
+        
         @(posedge clk);
         
-        // Add to expected queue AFTER DUT has sampled (if not flushing)
+       
         if (!do_flush) begin
             txn_t t;
             t.a = a_val;
@@ -100,13 +100,13 @@ module tb_alu_pipelined;
             expected_queue.push_back(t);
         end
         
-        // Clear control signals
+        
         @(negedge clk);
         valid_in = 1'b0;
         flush = 1'b0;
     endtask
 
-    // Test sequence
+  
     initial begin
         clk = 0;
         rst_n = 0;
@@ -116,12 +116,12 @@ module tb_alu_pipelined;
         b = 0;
         op = ALU_ADD;
 
-        // Hold reset for a few cycles
+     
         repeat(3) @(posedge clk);
         @(negedge clk);
         rst_n = 1;
         
-        // Wait for reset to take effect
+        
         repeat(2) @(posedge clk);
 
         $display("=== Basic Tests ===");
@@ -133,13 +133,13 @@ module tb_alu_pipelined;
         send_txn(1, 4, ALU_SLL);
         send_txn(16, 2, ALU_SRL);
 
-        // Wait for all outputs
+      
         repeat(10) @(posedge clk);
 
         $display("\n=== Flush Test ===");
         send_txn(100, 50, ALU_ADD);
         send_txn(200, 10, ALU_SUB);
-        send_txn(300, 30, ALU_XOR, 1); // flushed - should not appear in output
+        send_txn(300, 30, ALU_XOR, 1); 
         send_txn(400, 40, ALU_OR);
 
         repeat(10) @(posedge clk);
@@ -148,14 +148,14 @@ module tb_alu_pipelined;
         send_txn(999, 111, ALU_ADD);
         @(posedge clk);
         @(negedge clk);
-        rst_n = 0;  // Assert reset while transaction is in pipeline
-        expected_queue.delete();  // Clear queue - reset discards in-flight transactions
+        rst_n = 0;  
+        expected_queue.delete();  
         repeat(2) @(posedge clk);
         @(negedge clk);
         rst_n = 1;
         repeat(5) @(posedge clk);
 
-        // Check if queue is empty (all transactions processed)
+       
         if (expected_queue.size() != 0) begin
             $error("Test ended with %0d transactions still in queue!", expected_queue.size());
         end else begin
@@ -165,7 +165,7 @@ module tb_alu_pipelined;
         $finish;
     end
 
-    // Clock generator
+   
     always #5 clk = ~clk;
 
 endmodule
